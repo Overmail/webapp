@@ -21,6 +21,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Anmelden - Overmail</title>
+</svelte:head>
+
 <div class="flex flex-col p-12">
 
     <img src={favicon} alt="Logo" class="w-12 h-12"/>

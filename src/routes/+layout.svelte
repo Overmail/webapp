@@ -9,17 +9,21 @@
 	let { children } = $props();
 
     onMount(async () => {
-        if (!page.url.pathname.startsWith("/auth")) {
+
+        const pathsWithoutAuth = ["auth", "share"]
+        const isInPathWithoutAuth = pathsWithoutAuth.some(path => page.url.pathname.startsWith(`/${path}`))
+
+        if (!isInPathWithoutAuth) {
             const isAuthenticated = await check_auth()
-            if (!isAuthenticated) {
-                await goto("/auth")
-            }
+            if (!isAuthenticated) await goto("/auth")
+            else if (page.url.pathname === "/") await goto("/dashboard")
         }
     })
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+    <title>Overmail</title>
 </svelte:head>
 
 <div class="w-full h-full">
