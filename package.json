@@ -27,5 +27,9 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"@lucide/svelte": "^0.544.0",
+		"tailwind-scrollbar-hide": "^4.0.0"
 	}
 }
