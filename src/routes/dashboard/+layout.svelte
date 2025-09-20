@@ -8,6 +8,7 @@
     import {folderTree, subscribeToFolders} from "./data/folders";
     import {goto} from "$app/navigation";
     import {page} from "$app/state";
+    import Folder from "./_menu/Folder.svelte";
 
     let { children } = $props();
 
@@ -30,19 +31,20 @@
 <div class="flex flex-row gap-4 w-full h-full p-4 bg-[#f5f2e9]">
     <div
             class="w-8 transition-all duration-150"
-            class:w-74={pinDrawer}
+            class:w-68={pinDrawer}
     ></div>
 
     <div
-            class="absolute top-0 left-0 w-full h-full flex px-2 transition-all duration-150"
+            class="absolute top-0 left-0 w-fit h-full flex px-2 duration-150 transition-all"
             class:py-2={expandDrawer || pinDrawer}
             class:py-4={!(expandDrawer || pinDrawer)}
+            class:w-full={expandDrawer && !pinDrawer}
     >
         <div
                 aria-label="Expand Drawer"
                 role="button"
                 tabindex="0"
-                class="h-full w-10 pl-2 rounded-lg flex flex-col items-start justify-start z-10 transition-all duration-150 bg-[#f5f2e9] overflow-x-hidden"
+                class="h-full w-10 pl-2 rounded-lg flex flex-col items-start justify-start z-20 transition-all duration-150 bg-[#f5f2e9] overflow-x-hidden"
                 onmouseenter={() => expandDrawer = true}
                 onmouseleave={() => pinDrawer ? null : expandDrawer = false}
                 class:w-full={expandDrawer || pinDrawer}
@@ -72,7 +74,7 @@
                 {/if}
             </div>
 
-            <div class="flex flex-col flex-1 gap-1 mt-2 w-full">
+            <div class="flex flex-col flex-1 gap-1 mt-2 w-full overflow-y-auto no-scrollbar">
                 <!-- Drawer content -->
                 <Item
                         class="mb-4"
@@ -83,17 +85,7 @@
                         title="Dashboard" />
 
                 {#each $folderTree as folder}
-                    <Item
-                            active={page.url.pathname.startsWith(`/dashboard/folder/${folder.id}`)}
-                            slim={true}
-                            suffix={folder.unreadCount > 0 ? folder.unreadCount.toString() : undefined}
-                            showSuffix={folder.unreadCount > 0 && (expandDrawer || pinDrawer)}
-                            hasDot={folder.unreadCount > 0}
-                            icon={folder.getIcon()}
-                            onclick={() => goto(`/dashboard/folder/${folder.id}`)}
-                            title={folder.getDisplayName() ?? folder.name}
-                            subtitle={folder.getDisplayName() ? folder.name : undefined}
-                    />
+                    <Folder {folder} />
                 {/each}
             </div>
 
@@ -119,7 +111,7 @@
 
 {#if expandDrawer && !pinDrawer}
     <div
-            class="w-full h-full bg-[#00000020] backdrop-blur-xs absolute top-0 left-0 p-4"
+            class="w-full h-full bg-[#00000020] backdrop-blur-xs absolute top-0 left-0 p-4 z-10"
             transition:fade={{ duration: 150 }}
     ></div>
 {/if}

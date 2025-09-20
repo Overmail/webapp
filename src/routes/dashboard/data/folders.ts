@@ -17,9 +17,10 @@ function connectWebSocket() {
     } catch (e) {
         console.error("Failed to connect to WebSocket", e);
         setTimeout(connectWebSocket, 1000);
+        return
     }
 
-    if (webSocket) webSocket.onmessage = (event) => {
+    webSocket.onmessage = (event) => {
         const data = JSON.parse(event.data)
         if (data.type === "new-folders") {
             console.log("New folder", data.folders)
@@ -28,15 +29,15 @@ function connectWebSocket() {
             else {
                 const apiFolderIds: string[] = data.folders.map((f: ApiFolder) => f.id)
                 folders.update(currentFolders => {
-                    const currentFoldersWithNewFolders = currentFolders.filter(f => !apiFolderIds.includes(f.id))
-                    return [...currentFoldersWithNewFolders, ...data.folders]
+                    const currentFoldersWithOutNewFolders = currentFolders.filter(f => !apiFolderIds.includes(f.id))
+                    return [...currentFoldersWithOutNewFolders, ...data.folders]
                 })
             }
             hadSuccess = true;
         }
     }
 
-    if (webSocket) webSocket.onclose = (e: CloseEvent) => {
+    webSocket.onclose = (e: CloseEvent) => {
         if (e.code !== 1000) {
             console.info("WebSocket connection closed unexpectedly", e.reason);
             console.info(
@@ -79,8 +80,6 @@ export function subscribeToFolders(): () => void {
             folderMap.set(apiFolder.id, new Folder(apiFolder));
         });
 
-        console.info("Folders", folderMap)
-
         const roots: Folder[] = [];
         folderMap.forEach(folder => {
             const apiFolder = apiFolders.find(f => f.id === folder.id)!
@@ -90,13 +89,11 @@ export function subscribeToFolders(): () => void {
             } else {
                 const parentFolder = folderMap.get(apiFolder.parent_id);
                 if (parentFolder) {
-                    parentFolder.addChild(folder);
                     folder.setParent(parentFolder);
                 }
             }
         });
 
-        console.log("Folders", roots)
         folderTree.set(roots);
     });
 
