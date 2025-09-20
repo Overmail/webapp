@@ -1,13 +1,26 @@
 <script lang="ts">
     import {fade} from "svelte/transition";
     import favicon from "$lib/assets/favicon.svg";
-    import {LogOut, Pin} from "@lucide/svelte";
+    import {Home, LogOut, Pin} from "@lucide/svelte";
     import {browser} from "$app/environment";
+    import Item from "./_menu/Item.svelte";
+    import {onMount} from "svelte";
+    import {folderTree, subscribeToFolders} from "./data/folders";
+    import {goto} from "$app/navigation";
+    import {page} from "$app/state";
 
     let { children } = $props();
 
     let expandDrawer = $state(false);
     let pinDrawer = $state(browser && window.innerWidth > 900);
+
+    onMount(() => {
+        const cleanUp = subscribeToFolders();
+
+        return () => {
+            cleanUp();
+        }
+    })
 </script>
 
 <svelte:head>
@@ -17,7 +30,7 @@
 <div class="flex flex-row gap-4 w-full h-full p-4 bg-[#f5f2e9]">
     <div
             class="w-8 transition-all duration-150"
-            class:w-72={pinDrawer}
+            class:w-74={pinDrawer}
     ></div>
 
     <div
@@ -34,36 +47,55 @@
     >
         <div class="flex flex-col gap-4 mt-2 items-center overflow-clip w-full">
             <img src={favicon} alt="Overmail Logo" class="w-8 h-8" />
-            {#if expandDrawer || pinDrawer}
-                <div class="text-2xl font-bold" transition:fade={{ duration: 100 }}>
-                    Overmail
-                </div>
-            {/if}
+            <div class="h-6">
+                {#if expandDrawer || pinDrawer}
+                    <div class="text-2xl font-bold" transition:fade={{ duration: 100 }}>
+                        Overmail
+                    </div>
+                {/if}
+            </div>
         </div>
 
-        <div class="flex flex-col flex-1 gap-4">
+        <div class="flex flex-col flex-1 gap-1 mt-2 w-full">
             <!-- Drawer content -->
+
+            <Item
+                    class="mb-4"
+                    active={page.url.pathname === "/dashboard"}
+                    slim={true}
+                    icon={Home}
+                    onclick={() => goto("/dashboard")}
+                    title="Dashboard" />
+
+            {#each $folderTree as folder}
+                <Item
+                        active={page.url.pathname.startsWith(`/dashboard/folder/${folder.id}`)}
+                        slim={true}
+                        suffix={folder.unreadCount > 0 ? folder.unreadCount.toString() : undefined}
+                        showSuffix={folder.unreadCount > 0 && (expandDrawer || pinDrawer)}
+                        hasDot={folder.unreadCount > 0}
+                        icon={folder.getIcon()}
+                        onclick={() => goto(`/dashboard/folder/${folder.id}`)}
+                        title={folder.getDisplayName() ?? folder.name}
+                        subtitle={folder.getDisplayName() ? folder.name : undefined}
+                />
+            {/each}
         </div>
 
         <div class="flex flex-col gap-1 mb-2 w-full">
-            <button
-                    onclick={() => pinDrawer = !pinDrawer}
-                    class="flex flex-row items-center justify-start overflow-hidden gap-2 py-2 px-2 transition-colors rounded-lg w-full hover:bg-[#eae0c9] cursor-pointer"
-            >
-                <Pin class="w-4 h-4 shrink-0" />
-                <span class="shrink whitespace-nowrap overflow-hidden text-clip">Menü Pinnen</span>
-            </button>
-            <button
-                    onclick={() => window.location.href = "/api/auth/logout"}
-                    class="flex flex-row items-center justify-start overflow-hidden gap-2 py-2 px-2 transition-colors rounded-lg w-full hover:bg-[#eae0c9] cursor-pointer"
-            >
-                <LogOut class="w-4 h-4 shrink-0" />
-                <span class="shrink">Logout</span>
-            </button>
+            <Item
+                onclick={() => pinDrawer = !pinDrawer}
+                title="Menü Pinnen"
+                icon={Pin} />
+
+            <Item
+                onclick={() => window.location.href = "/api/auth/logout"}
+                title="Abmelden"
+                icon={LogOut} />
         </div>
     </div>
 
-    <div class="w-full h-full bg-[#ffffff] rounded-lg shadow-lg p-5">
+    <div class="w-full h-full bg-[#ffffff] rounded-lg shadow-lg overflow-hidden">
         {@render children?.()}
     </div>
 </div>
