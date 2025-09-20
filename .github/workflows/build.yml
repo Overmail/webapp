@@ -76,3 +76,4 @@ jobs:
           context: .
           file: Dockerfile
           tags: ghcr.io/overmail/overmail-frontend:latest
+          platforms: linux/amd64,linux/arm64/v8
