@@ -1,8 +1,9 @@
 <script lang="ts">
     import {page} from "$app/state";
     import Folder from "./Folder.svelte";
-    import { Folder as FolderClass } from "../data/folders"
+    import {Folder as FolderClass} from "$lib/app/data/folders"
     import Item from "./Item.svelte";
+    import {goto} from "$app/navigation";
 
     let {
         folder,
@@ -24,7 +25,7 @@
             showSuffix={folder.unreadCount > 0 && isDrawerOpen}
             hasDot={folder.unreadCount > 0}
             icon={folder.getIcon()}
-            onclick={onclick ?? (() => {})}
+            onclick={() => { onclick?.(); goto(`/dashboard/folder/${folder.id}`); }}
             title={folder.getDisplayName() ?? folder.name}
             subtitle={folder.getDisplayName() ? folder.name : undefined}
     />

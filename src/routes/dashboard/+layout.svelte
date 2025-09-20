@@ -5,7 +5,7 @@
     import {browser} from "$app/environment";
     import Item from "./_menu/Item.svelte";
     import {onMount} from "svelte";
-    import {folderTree, subscribeToFolders} from "./data/folders";
+    import {folderTree, subscribeToFolders} from "$lib/app/data/folders";
     import {goto} from "$app/navigation";
     import {page} from "$app/state";
     import Folder from "./_menu/Folder.svelte";
@@ -64,7 +64,7 @@
     <div
             class="absolute top-0 left-0 w-fit h-full flex px-2 duration-150 transition-all"
             class:py-2={isDrawerExpanded}
-            class:w-full={isDrawerExpanded}
+            class:w-full={expandDrawer}
             class:py-4={!isDrawerExpanded}
     >
         <div
@@ -115,7 +115,7 @@
                     <Folder
                             isDrawerOpen={isDrawerExpanded}
                             folder={folder}
-                            onclick={() => {expandDrawer = false; goto(`/dashboard/folder/${folder.id}`)}}
+                            onclick={() => expandDrawer = false}
                     />
                 {/each}
             </div>

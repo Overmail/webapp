@@ -1,9 +1,9 @@
 <script lang="ts">
     import {page} from "$app/state";
-    import {getFolderById} from "../../data/folders";
+    import {Folder, getFolderById} from "$lib/app/data/folders";
     import {writable, type Writable} from "svelte/store";
     import {onMount} from "svelte";
-    import {type Email, subscribeToMails} from "../../data/mails";
+    import {type Email, subscribeToMails} from "$lib/app/data/mails";
 
     let folder: Writable<Folder | null> = writable(null);
     let folderUnsubscriber: () => void;
@@ -55,13 +55,13 @@
     >
         <div class="flex-1 min-h-0">
             <div class="flex flex-col w-full h-full min-h-0">
-                <div class="w-full h-full min-h-0 overflow-y-auto">
+                <div class="w-full h-full min-h-0 overflow-y-auto pb-22">
                     <table class="min-w-full">
                         <thead>
                         <tr>
-                            <th class="py-2 pl-8 w-1/2 text-sm font-semibold bg-white sticky top-0 z-10 text-start">Betreff</th>
-                            <th class="p-2 w-1/4 text-sm font-semibold bg-white sticky top-0 z-10 text-start">Von</th>
-                            <th class="p-2 w-1/4 text-sm font-semibold bg-white sticky top-0 z-10 text-start">Datum</th>
+                            <th class="py-2 h-4 pl-8 w-1/2 text-sm font-semibold bg-white sticky top-0 z-10 text-start">Betreff</th>
+                            <th class="p-2 h-4 w-1/4 text-sm font-semibold bg-white sticky top-0 z-10 text-start">Von</th>
+                            <th class="p-2 h-4 w-1/4 text-sm font-semibold bg-white sticky top-0 z-10 text-start">Datum</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -84,7 +84,9 @@
                 </div>
             </div>
         </div>
-        <div class="flex-1 border-t border-t-gray-400 p-4">Box 2</div>
+        {#if showMailPanel}
+            <div class="flex-1 border-t border-t-gray-400 p-4">Box 2</div>
+        {/if}
     </div>
 
 </div>
