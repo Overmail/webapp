@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-COPY dist/ /app/
+COPY build/ /app/
 WORKDIR /app
 
 EXPOSE 3000

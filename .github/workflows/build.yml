@@ -20,7 +20,6 @@ jobs:
         with:
           version: 10
 
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vite-dist
-          path: dist
+          path: build
 
   build-docker:
     name: 🐳 Build Docker Image
@@ -55,7 +54,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: vite-dist
-          path: dist
+          path: build
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
