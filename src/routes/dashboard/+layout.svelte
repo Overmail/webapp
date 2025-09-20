@@ -13,15 +13,42 @@
     let { children } = $props();
 
     let expandDrawer = $state(false);
+
+    let isPinChanged = $state(false);
     let pinDrawer = $state(browser && window.innerWidth > 900);
+
+    let isDrawerExpanded = $derived(expandDrawer || pinDrawer);
+
+    let isMobile = $state(false)
+    function handleResize() {
+        isMobile = window.innerWidth < 900;
+        if (!isPinChanged) pinDrawer = !isMobile;
+    }
 
     onMount(() => {
         const cleanUp = subscribeToFolders();
+        window.addEventListener("resize", handleResize);
 
         return () => {
             cleanUp();
+            window.removeEventListener("resize", handleResize);
         }
     })
+
+    function onMenuMouseEnter() {
+        if (pinDrawer) return
+        expandDrawer = true
+    }
+
+    function onMenuMouseLeave() {
+        if (pinDrawer) return
+        if (isDrawerExpanded) expandDrawer = false
+    }
+
+    function togglePin() {
+        pinDrawer = !pinDrawer;
+        isPinChanged = true;
+    }
 </script>
 
 <svelte:head>
@@ -36,21 +63,21 @@
 
     <div
             class="absolute top-0 left-0 w-fit h-full flex px-2 duration-150 transition-all"
-            class:py-2={expandDrawer || pinDrawer}
+            class:py-2={isDrawerExpanded}
+            class:w-full={isDrawerExpanded}
             class:py-4={!(expandDrawer || pinDrawer)}
-            class:w-full={expandDrawer && !pinDrawer}
     >
         <div
                 aria-label="Expand Drawer"
                 role="button"
                 tabindex="0"
                 class="h-full w-10 pl-2 rounded-lg flex flex-col items-start justify-start z-20 transition-all duration-150 bg-[#f5f2e9] overflow-x-hidden"
-                onmouseenter={() => expandDrawer = true}
-                onmouseleave={() => pinDrawer ? null : expandDrawer = false}
-                class:w-full={expandDrawer || pinDrawer}
-                class:sm:w-56={expandDrawer || pinDrawer}
-                class:pr-2={expandDrawer || pinDrawer}
-                class:py-2={expandDrawer || pinDrawer}
+                onmouseenter={onMenuMouseEnter}
+                onmouseleave={onMenuMouseLeave}
+                class:w-full={isDrawerExpanded}
+                class:sm:w-56={isDrawerExpanded}
+                class:pr-2={isDrawerExpanded}
+                class:py-2={isDrawerExpanded}
                 class:shadow-lg={expandDrawer && !pinDrawer}
         >
             <div class="mt-2 w-full">
@@ -81,18 +108,18 @@
                         active={page.url.pathname === "/dashboard"}
                         slim={true}
                         icon={Home}
-                        onclick={() => goto("/dashboard")}
+                        onclick={() => {expandDrawer = false; goto("/dashboard")}}
                         title="Dashboard" />
 
                 {#each $folderTree as folder}
-                    <Folder {folder} />
+                    <Folder folder={folder} onclick="{() => {expandDrawer = false; goto(`/dashboard/folder/${folder.id}`)}}" />
                 {/each}
             </div>
 
             <div class="flex flex-col gap-1 mb-2 w-full">
                 <Item
                         class="hidden sm:flex"
-                        onclick={() => pinDrawer = !pinDrawer}
+                        onclick={togglePin}
                         title="Menü Pinnen"
                         icon={Pin} />
 

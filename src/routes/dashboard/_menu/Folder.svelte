@@ -1,13 +1,14 @@
 <script lang="ts">
     import {page} from "$app/state";
-    import {goto} from "$app/navigation";
     import Folder from "./Folder.svelte";
     import Item from "./Item.svelte";
 
     let {
-        folder
+        folder,
+        onclick
     }: {
-        folder: Folder
+        folder: Folder,
+        onclick?: () => void,
     } = $props();
 
 </script>
@@ -20,14 +21,14 @@
             showSuffix={folder.unreadCount > 0 && (expandDrawer || pinDrawer)}
             hasDot={folder.unreadCount > 0}
             icon={folder.getIcon()}
-            onclick={() => goto(`/dashboard/folder/${folder.id}`)}
+            onclick={onclick}
             title={folder.getDisplayName() ?? folder.name}
             subtitle={folder.getDisplayName() ? folder.name : undefined}
     />
     {#if folder.children.length > 0}
         <div class="flex flex-col gap-2 mt-2 ml-2">
             {#each folder.children as subFolder}
-                <Folder folder={subFolder}/>
+                <Folder folder={subFolder} onclick={onclick} />
             {/each}
         </div>
     {/if}
