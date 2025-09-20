@@ -110,7 +110,7 @@ interface ApiFolder {
     unread_count: number;
 }
 
-class Folder {
+export class Folder {
     id: string;
     name: string;
     parent: Folder | null;

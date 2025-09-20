@@ -65,7 +65,7 @@
             class="absolute top-0 left-0 w-fit h-full flex px-2 duration-150 transition-all"
             class:py-2={isDrawerExpanded}
             class:w-full={isDrawerExpanded}
-            class:py-4={!(expandDrawer || pinDrawer)}
+            class:py-4={!isDrawerExpanded}
     >
         <div
                 aria-label="Expand Drawer"
@@ -112,7 +112,11 @@
                         title="Dashboard" />
 
                 {#each $folderTree as folder}
-                    <Folder folder={folder} onclick="{() => {expandDrawer = false; goto(`/dashboard/folder/${folder.id}`)}}" />
+                    <Folder
+                            isDrawerOpen={isDrawerExpanded}
+                            folder={folder}
+                            onclick={() => {expandDrawer = false; goto(`/dashboard/folder/${folder.id}`)}}
+                    />
                 {/each}
             </div>
 

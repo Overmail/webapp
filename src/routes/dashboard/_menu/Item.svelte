@@ -12,7 +12,7 @@
         onclick,
         slim,
         active,
-        class: classList
+        class: className,
     }: {
         icon: import("svelte").Component<IconProps, {}, "">,
         title: string,
@@ -23,14 +23,14 @@
         onclick: () => void,
         slim?: boolean,
         active?: boolean,
-        classList?: string
+        class?: string
     } = $props();
 
 </script>
 
 <button
         onclick={onclick}
-        class={`flex flex-row items-center justify-start text-xs overflow-hidden gap-2 p-2 transition-colors rounded-lg w-full hover:bg-[#eae0c9] cursor-pointer ${classList ?? ""}`}
+        class={`flex flex-row items-center justify-start text-xs overflow-hidden gap-2 p-2 transition-colors rounded-lg w-full hover:bg-[#eae0c9] cursor-pointer ${className ?? ""}`}
         class:bg-[#eae0c9]={active}
         class:h-10={!slim}
 >
