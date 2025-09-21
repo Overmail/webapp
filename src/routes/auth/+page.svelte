@@ -1,6 +1,6 @@
 <script lang="ts">
     import {Info, Lock, LogIn, ServerCrash, User} from "@lucide/svelte";
-    import favicon from "$lib/assets/favicon.svg";
+    import favicon from "$lib/assets/favicon_path.svg";
     import InputField from "$lib/components/InputField.svelte";
     import FormPart from "$lib/components/FormPart.svelte";
     import Button from "$lib/components/Button.svelte";

@@ -9,6 +9,12 @@ interface WebSocketEmailMetadataMessage extends WebSocketEmailMessage {
     subject: string;
     sent_at: number;
     sent_by: string;
+    sent_to: {
+        name: string;
+        email: string;
+        is_me: boolean;
+        type: "to" | "cc" | "bcc";
+    }[]
     has_html_body: boolean;
     is_read: boolean;
 }
@@ -45,6 +51,11 @@ export class EmailSubscription {
     private _sentBy = writable<string | null>(null)
     sentBy = readable<string | null>(null, (set) => {
         this._sentBy.subscribe(set)
+    })
+
+    private _sentTo = writable<Recipient[]>([])
+    sentTo = readable<Recipient[]>([], (set) => {
+        this._sentTo.subscribe(set)
     })
 
     private _hasHtmlBody = writable<boolean>(false)
@@ -120,6 +131,7 @@ export class EmailSubscription {
                 this._subject.set(metadataMessage.subject)
                 this._sentAt.set(new Date(metadataMessage.sent_at * 1000))
                 this._sentBy.set(metadataMessage.sent_by)
+                this._sentTo.set(metadataMessage.sent_to)
                 this._hasHtmlBody.set(metadataMessage.has_html_body)
                 this._isRead.set(metadataMessage.is_read)
                 this._isReady.set(true)
@@ -135,3 +147,12 @@ export class EmailSubscription {
         this.closeWebSocket()
     }
 }
+
+export interface Recipient {
+    name: string;
+    email: string;
+    is_me: boolean;
+    type: RecipientType;
+}
+
+export type RecipientType = "to" | "cc" | "bcc";

@@ -3,6 +3,7 @@
 
     let {
         icon,
+        iconSnippet,
         label,
         state,
         type,
@@ -11,6 +12,7 @@
         onclick
     }: {
         icon?: import("svelte").Component<IconProps, {}, "">,
+        iconSnippet?: any,
         label?: string,
         state?: "enabled" | "disabled" | "loading",
         type: "primary" | "secondary" | "link",
@@ -34,6 +36,10 @@
     {#if icon}
         {@const Icon = icon}
         <Icon size={16} />
+    {:else if iconSnippet}
+        <div class="aspect-square w-4 h-4 relative flex items-center justify-center">
+            {@render iconSnippet()}
+        </div>
     {/if}
     {#if label}
         <span class="text-sm font-medium">

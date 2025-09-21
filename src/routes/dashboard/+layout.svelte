@@ -92,7 +92,7 @@
                 {/if}
             </div>
 
-            <div class="flex flex-row gap-2 items-center overflow-clip w-full">
+            <div class="flex flex-row gap-2 items-center overflow-clip w-full mt-2">
                 <img src={favicon} alt="Overmail Logo" class="w-8 h-8" />
                 {#if expandDrawer || pinDrawer}
                     <div class="text-lg font-bold" transition:fade={{ duration: 100 }}>
