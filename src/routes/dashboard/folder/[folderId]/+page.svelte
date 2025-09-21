@@ -87,8 +87,6 @@
                         {$totalMails} E-Mails
                     {/if}
                 {/if}
-
-                (davon {$fetchedEmails} geladen)
             </h2>
         </div>
         <div class="flex w-full h-full"

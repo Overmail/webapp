@@ -3,6 +3,7 @@
     import {onMount} from "svelte";
     import ToggleGroup from "$lib/components/ToggleGroup.svelte";
     import {AppWindowMac, Text} from "@lucide/svelte";
+    import {get} from "svelte/store";
 
     let {
         mailId
@@ -18,7 +19,7 @@
     let textBody = $derived.by(() => mailSubscription?.textBody);
 
     $effect(() => {
-        if (hasHtmlBody) viewMode = "html";
+        if (hasHtmlBody && get(hasHtmlBody)) viewMode = "html";
         else viewMode = "text";
     })
 
@@ -61,7 +62,7 @@
         </h2>
     {/if}
 
-    {#if hasHtmlBody}
+    {#if $hasHtmlBody}
         <div class="mt-2">
             <ToggleGroup
                     active={[viewMode]}
