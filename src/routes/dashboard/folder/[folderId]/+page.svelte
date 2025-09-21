@@ -5,7 +5,13 @@
     import {onMount} from "svelte";
     import {fade} from "svelte/transition";
     import {Loader} from "@lucide/svelte";
-    import {type Email, MailSubscriber, MailSubscriberOld, subscribeToMails} from "$lib/app/data/mails";
+    import {
+        type Email,
+        getMailSubscriberForFolder,
+        MailSubscriber,
+        MailSubscriberOld,
+        subscribeToMails
+    } from "$lib/app/data/mails";
     import Intersector from "./Intersector.svelte";
 
     let folder: Writable<Folder | null> = writable(null);
@@ -37,8 +43,9 @@
         folderUnsubscriber?.();
         folderUnsubscriber = getFolderById(newFolderId, folder).unsubscriber
 
-        emailSubscription?.close()
-        emailSubscription = new MailSubscriber(newFolderId);
+        emailSubscription?.closeWebSocket()
+        emailSubscription = getMailSubscriberForFolder(newFolderId)
+        emailSubscription.setupWebSocket();
 
         emailSubscriptionOld?.unsubscriber();
         subscribeToMails(newFolderId, emails)

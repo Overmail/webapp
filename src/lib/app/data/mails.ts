@@ -89,6 +89,17 @@ export async function subscribeToMails(folderId: string, mailsForFolder: Writabl
     }, webSocket)
 }
 
+const mailSubscriberMap: Map<string, MailSubscriber> = new Map()
+
+export function getMailSubscriberForFolder(folderId: string) {
+    let mailSubscriber = mailSubscriberMap.get(folderId)
+    if (!mailSubscriber) {
+        mailSubscriber = new MailSubscriber(folderId)
+        mailSubscriberMap.set(folderId, mailSubscriber)
+    }
+    return mailSubscriber
+}
+
 export class MailSubscriber {
 
     private webSocket: WebSocket | null = null;
@@ -109,7 +120,7 @@ export class MailSubscriber {
         this.setupWebSocket()
     }
 
-    private setupWebSocket() {
+    setupWebSocket() {
         this.closeWebSocket()
 
         this.webSocket = new WebSocket(`/api/webapp/realtime/mail/${this.folderId}`)
@@ -135,7 +146,7 @@ export class MailSubscriber {
         }
     }
 
-    private closeWebSocket() {
+    closeWebSocket() {
         this.webSocket?.close()
     }
 
