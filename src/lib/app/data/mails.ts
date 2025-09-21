@@ -1,4 +1,5 @@
-import {writable, type Writable} from "svelte/store";
+import {readable, writable, type Writable} from "svelte/store";
+import type {MailWebSocketMessage, MailWebSocketMetadataMessage} from "$lib/app/data/mails/api_websocket";
 
 let webSockets: Map<string, WebSocket> = new Map()
 
@@ -74,7 +75,7 @@ async function connectWebSocket(folderId: string): Promise<WebSocket> {
     return webSocket;
 }
 
-export async function subscribeToMails(folderId: string, mailsForFolder: Writable<Email[]>) : Promise<MailSubscriber> {
+export async function subscribeToMails(folderId: string, mailsForFolder: Writable<Email[]>) : Promise<MailSubscriberOld> {
     const webSocket = await connectWebSocket(folderId);
 
     const unsubscriber = apiMailItems.get(folderId)!.subscribe((apiMails) => {
@@ -82,13 +83,69 @@ export async function subscribeToMails(folderId: string, mailsForFolder: Writabl
         mailsForFolder.set(mails)
     })
 
-    return new MailSubscriber(() => {
+    return new MailSubscriberOld(() => {
         webSockets.get(folderId)?.close()
         unsubscriber()
     }, webSocket)
 }
 
 export class MailSubscriber {
+
+    private webSocket: WebSocket | null = null;
+    private readonly folderId: string;
+
+    private _totalMails = writable(0)
+    totalMails = readable(0, (set) => {
+        this._totalMails.subscribe(set)
+    })
+
+    private _isReady = writable(false);
+    isReady = readable(false, (set) => {
+        this._isReady.subscribe(set)
+    })
+
+    constructor(folderId: string) {
+        this.folderId = folderId;
+        this.setupWebSocket()
+    }
+
+    private setupWebSocket() {
+        this.closeWebSocket()
+
+        this.webSocket = new WebSocket(`/api/webapp/realtime/mail/${this.folderId}`)
+
+        this.webSocket.onclose = (e: CloseEvent) => {
+            if (e.code !== 1000) {
+                console.info("WebSocket connection closed unexpectedly", e.reason);
+                console.info(
+                    "Attempting to reconnect in 1 second...",
+                    e.reason
+                )
+                setTimeout(() => this.setupWebSocket(), 1000);
+            }
+        }
+
+        this.webSocket.onmessage = (event) => {
+            const message: MailWebSocketMessage = JSON.parse(event.data)
+            if (message.type === "metadata") {
+                const data = message as MailWebSocketMetadataMessage
+                this._totalMails.set(data.total_mails)
+                this._isReady.set(true)
+            }
+        }
+    }
+
+    private closeWebSocket() {
+        this.webSocket?.close()
+    }
+
+    close() {
+        this.closeWebSocket()
+    }
+}
+
+
+export class MailSubscriberOld {
     unsubscriber: () => void;
     private webSocket: WebSocket;
 
