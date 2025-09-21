@@ -6,6 +6,7 @@
         label,
         state,
         type,
+        size,
         class: className,
         onclick
     }: {
@@ -13,16 +14,20 @@
         label?: string,
         state?: "enabled" | "disabled" | "loading",
         type: "primary" | "secondary" | "link",
+        size?: "regular" | "icon"
         class?: string,
         onclick?: (e: MouseEvent) => void,
     } = $props();
 </script>
 
 <button
-        class={`${className || ''} flex flex-row items-center gap-2 px-4 py-3 text-sm min-h-10 rounded-md hover:cursor-pointer button`}
+        class={`w-fit ${className || ''} inline-flex flex-row items-center justify-center py-2 gap-2 text-sm min-h-10 rounded-md hover:cursor-pointer button`}
         class:text-white={type === "primary"}
         class:bg-black={type === "primary"}
         class:hover:bg-gray-200={type === "link"}
+        class:aspect-square={size === "icon"}
+        class:px-2={size === "icon"}
+        class:px-4={size !== "icon"}
         disabled={state === "disabled" || state === "loading"}
         onclick={onclick}
 >

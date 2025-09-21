@@ -10,6 +10,7 @@ interface WebSocketEmailMetadataMessage extends WebSocketEmailMessage {
     sent_at: number;
     sent_by: string;
     has_html_body: boolean;
+    is_read: boolean;
 }
 
 const emailSubscriptions: Map<string, EmailSubscription> = new Map();
@@ -56,13 +57,33 @@ export class EmailSubscription {
         this._textBody.subscribe(set)
     })
 
+    private _isRead = writable<boolean>(false)
+    isRead = readable<boolean>(false, (set) => {
+        this._isRead.subscribe(set)
+    })
+
+    async onReady() {
+        let unsubscribe: () => void;
+        return new Promise<EmailSubscription>((resolve) => {
+            let hasFired = false;
+            unsubscribe = this._isReady.subscribe((v) => {
+                if (!v) return;
+                if (hasFired) return;
+                hasFired = true;
+                resolve(this);
+            })
+        }).finally(() => {
+            unsubscribe();
+        });
+    }
+
     private webSocket: WebSocket | null = null;
 
     constructor(emailId: string) {
         this.emailId = emailId;
         this.setupWebSocket()
 
-        fetch("/api/mail/" + emailId + "/content/text").then(response => {
+        fetch("/api/mails/" + emailId + "/content/text").then(response => {
             if (response.ok) {
                 response.json().then(text => {
                     this._textBody.set(text.text)
@@ -100,6 +121,7 @@ export class EmailSubscription {
                 this._sentAt.set(new Date(metadataMessage.sent_at * 1000))
                 this._sentBy.set(metadataMessage.sent_by)
                 this._hasHtmlBody.set(metadataMessage.has_html_body)
+                this._isRead.set(metadataMessage.is_read)
                 this._isReady.set(true)
             }
         }

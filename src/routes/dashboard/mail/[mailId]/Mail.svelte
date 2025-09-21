@@ -2,13 +2,17 @@
     import {EmailSubscription, getEmailSubscription} from "$lib/app/data/mails/mail";
     import {onMount} from "svelte";
     import ToggleGroup from "$lib/components/ToggleGroup.svelte";
-    import {AppWindowMac, Text} from "@lucide/svelte";
+    import {AppWindowMac, ArrowLeft, Mail, MailOpen, Text, Trash2} from "@lucide/svelte";
+    import Button from "$lib/components/Button.svelte";
     import {get} from "svelte/store";
+    import {setRead} from "$lib/app/data/mails/functions";
 
     let {
-        mailId
+        mailId,
+        onBack
     }: {
-        mailId: string
+        mailId: string,
+        onBack?: () => void,
     } = $props();
 
     let mailSubscription: EmailSubscription | null = $state(null);
@@ -17,32 +21,67 @@
     let sentAt = $derived.by(() => mailSubscription?.sentAt);
     let hasHtmlBody = $derived.by(() => mailSubscription?.hasHtmlBody);
     let textBody = $derived.by(() => mailSubscription?.textBody);
+    let isRead = $derived.by(() => mailSubscription?.isRead);
 
-    $effect(() => {
-        if (hasHtmlBody && get(hasHtmlBody)) viewMode = "html";
-        else viewMode = "text";
-    })
+    let htmlBodyStateUnsubscriber: (() => void) | null = null;
 
     let viewMode: "html" | "text" = $state("html");
 
     function onNewId(newId: string) {
+        htmlBodyStateUnsubscriber?.();
         mailSubscription = getEmailSubscription(newId)
+        htmlBodyStateUnsubscriber = mailSubscription.hasHtmlBody.subscribe((hasHtmlBody) => {
+            if (hasHtmlBody) viewMode = "html";
+            else viewMode = "text";
+        })
+
+        mailSubscription.onReady().then((sub) => {
+            const isRead = get(sub.isRead);
+            if(!isRead) {
+                setRead(newId, true);
+            }
+        })
     }
 
-    $effect(() => {
-        if (mailId && mailId != mailSubscription?.emailId) {
-            onNewId(mailId);
-        }
-    })
-
     onMount(() => {
+        console.log("mounting mail", mailId);
         onNewId(mailId);
     })
 </script>
 
-<div class="flex-col px-8 pt-4 pb-4 h-full">
+<div class="flex flex-row items-center justify-between pt-4 px-4">
+    <Button
+            class="shrink"
+            icon={ArrowLeft}
+            onclick={onBack}
+            label="Zurück"
+            state="enabled"
+            type="link"
+    />
+    <div class="flex flex-row items-center gap-1 shrink">
+        <Button
+                size="icon"
+                icon={Trash2}
+                onclick={onBack}
+                state="enabled"
+                type="link"
+        />
+        <Button
+                size="icon"
+                icon={!$isRead ? Mail : MailOpen}
+                onclick={() => {
+                    if (!mailSubscription) return;
+                    setRead(mailId, !$isRead);
+                }}
+                state="enabled"
+                type="link"
+        />
+    </div>
+</div>
+
+<div class="flex flex-col px-6 pt-2 flex-1 overflow-y-auto">
     {#if mailSubscription?.isReady}
-        <h1 class="text-5xl">
+        <h1 class="text-3xl" class:font-bold={!$isRead}>
             {#if $subject == null}
                 <i>Ohne Betreff</i>
             {:else}
@@ -84,20 +123,17 @@
         </div>
     {/if}
 
-    <div class="mt-2 flex-1 h-full overflow-auto">
+    <div class="flex flex-col grow mt-2">
         {#if viewMode === "html"}
-            <iframe src="/api/mail/{mailId}/content/html?raw=true" class="w-full h-full" title={$subject}></iframe>
+            <iframe src="/api/mails/{mailId}/content/html?raw=true" class="w-full flex grow" title={$subject}></iframe>
         {:else if viewMode === "text"}
             <div class="prose prose-sm">
                 {#if $textBody}
                     {@html $textBody
-                        .replaceAll("<", "&lt\;")
-                        .replaceAll(">", "&gt\;")
                         .replaceAll("\n\n", "<p>")
                         .replaceAll("\n", "<br />")}
                 {/if}
             </div>
         {/if}
     </div>
-
 </div>
