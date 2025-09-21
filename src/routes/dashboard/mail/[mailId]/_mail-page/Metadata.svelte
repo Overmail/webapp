@@ -40,7 +40,7 @@
                         </span>
                         {#if sentTo.length === 2}
                             <span>+ ein weiterer</span>
-                        {:else}
+                        {:else if sentTo.length > 2}
                             <span>+ {sentTo.length - 1} weitere</span>
                         {/if}
                     {/if}
