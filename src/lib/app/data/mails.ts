@@ -14,7 +14,7 @@ interface ApiMailItem {
 
 let apiMailItems: Map<string, Writable<ApiMailItem[]>> = new Map()
 
-function connectWebSocket(folderId: string) {
+async function connectWebSocket(folderId: string): Promise<WebSocket> {
     let webSocket = webSockets.get(folderId)
     if (webSocket) {
         webSocket.close()
@@ -35,8 +35,13 @@ function connectWebSocket(folderId: string) {
         webSocket = new WebSocket(`/api/webapp/realtime/mail/${folderId}`)
     } catch (e) {
         console.error("Failed to connect to WebSocket", e);
-        setTimeout(() => connectWebSocket(folderId), 1000);
-        return
+
+        // retry recursively after 1 second and return the promise
+        return new Promise<WebSocket>((resolve) => {
+            setTimeout(() => {
+                resolve(connectWebSocket(folderId));
+            }, 1000);
+        });
     }
 
     webSocket.onmessage = (event) => {
@@ -64,19 +69,38 @@ function connectWebSocket(folderId: string) {
             setTimeout(() => connectWebSocket(folderId), 1000);
         }
     }
+
+    webSockets.set(folderId, webSocket)
+    return webSocket;
 }
 
-export function subscribeToMails(folderId: string, mailsForFolder: Writable<Email[]>) : () => void {
-    connectWebSocket(folderId);
+export async function subscribeToMails(folderId: string, mailsForFolder: Writable<Email[]>) : Promise<MailSubscriber> {
+    const webSocket = await connectWebSocket(folderId);
 
     const unsubscriber = apiMailItems.get(folderId)!.subscribe((apiMails) => {
         const mails = apiMails.map(mail => new Email(mail))
         mailsForFolder.set(mails)
     })
 
-    return () => {
+    return new MailSubscriber(() => {
         webSockets.get(folderId)?.close()
         unsubscriber()
+    }, webSocket)
+}
+
+export class MailSubscriber {
+    unsubscriber: () => void;
+    private webSocket: WebSocket;
+
+    constructor(unsubscriber: () => void, webSocket: WebSocket) {
+        this.unsubscriber = unsubscriber;
+        this.webSocket = webSocket;
+    }
+
+    requestNextChunk() {
+        this.webSocket.send(JSON.stringify({
+            type: "request_next_chunk"
+        }))
     }
 }
 

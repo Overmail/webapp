@@ -3,13 +3,15 @@
     import {Folder, getFolderById} from "$lib/app/data/folders";
     import {writable, type Writable} from "svelte/store";
     import {onMount} from "svelte";
-    import {type Email, subscribeToMails} from "$lib/app/data/mails";
+    import {type Email, MailSubscriber, subscribeToMails} from "$lib/app/data/mails";
+    import Intersector from "./Intersector.svelte";
 
     let folder: Writable<Folder | null> = writable(null);
     let folderUnsubscriber: () => void;
 
     let emails: Writable<Email[]> = writable([]);
-    let emailUnsubscriber: () => void;
+    let emailSubscription: MailSubscriber;
+    let fetchedEmails = $state(0)
 
     let showMailPanel = $state(false);
     let panelOrientation: "horizontal" | "vertical" = $state("horizontal")
@@ -19,8 +21,9 @@
             folderUnsubscriber?.();
             folderUnsubscriber = getFolderById(page.params.folderId, folder).unsubscriber
 
-            emailUnsubscriber?.();
-            emailUnsubscriber = subscribeToMails(page.params.folderId, emails)
+            emailSubscription?.unsubscriber();
+            subscribeToMails(page.params.folderId, emails)
+                .then(sub => emailSubscription = sub)
         }
     })
 
@@ -33,21 +36,28 @@
         }
     }
 
+    function requestNextChunk() {
+        emailSubscription?.requestNextChunk()
+    }
+
     onMount(() => {
         handleResize()
         window.addEventListener("resize", handleResize)
 
+        const fetchCountUnsubscriber = emails.subscribe(mails => fetchedEmails = mails.length)
+
         return () => {
             window.removeEventListener("resize", handleResize);
             folderUnsubscriber?.();
-            emailUnsubscriber?.();
+            emailSubscription?.unsubscriber();
+            fetchCountUnsubscriber();
         }
     })
 </script>
 
 <div class="flex flex-col w-full h-full">
     <h1 class="text-3xl font-bold px-8 pt-8 pb-4">
-        {$folder?.getDisplayName() ?? $folder?.name}
+        {$folder?.getDisplayName() ?? $folder?.name} {fetchedEmails}
     </h1>
     <div class="flex w-full h-full"
          class:flex-col={panelOrientation === "vertical"}
@@ -65,13 +75,20 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {#each $emails as email}
+                        {#each $emails as email, i(email.id)}
                             <tr class="border-t border-t-gray-400">
                                 <td
                                         class="py-1 pl-8 text-sm truncate max-w-xs overflow-hidden whitespace-nowrap"
                                         class:font-bold={!email.isRead}
                                         title={email.subject}
-                                >{email.subject}</td>
+                                >{i} {email.subject}
+                                    <div>
+                                        {#if i === Math.max(0, fetchedEmails - 100)}
+                                            <Intersector onIntersect={requestNextChunk} />
+                                        {/if}
+                                    </div>
+
+                                </td>
                                 <td class="p-1 text-sm truncate max-w-xs overflow-hidden whitespace-nowrap">{email.senderName}</td>
                                 <td class="p-1 text-sm truncate max-w-xs overflow-hidden whitespace-nowrap font-mono">
                                     {email.sentAt.toLocaleDateString()}
