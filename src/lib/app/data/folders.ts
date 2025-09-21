@@ -23,7 +23,6 @@ function connectWebSocket() {
     webSocket.onmessage = (event) => {
         const data = JSON.parse(event.data)
         if (data.type === "new-folders") {
-            console.log("New folder", data.folders)
 
             if (!hadSuccess) folders.set(data.folders)
             else {
@@ -83,7 +82,6 @@ export function subscribeToFolders(): () => void {
         const roots: Folder[] = [];
         folderMap.forEach(folder => {
             const apiFolder = apiFolders.find(f => f.id === folder.id)!
-            console.log("Folder", apiFolder)
             if (apiFolder?.parent_id === null) {
                 roots.push(folder);
             } else {

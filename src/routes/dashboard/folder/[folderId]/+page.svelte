@@ -5,25 +5,18 @@
     import {onMount} from "svelte";
     import {fade} from "svelte/transition";
     import {Loader} from "@lucide/svelte";
-    import {
-        type Email,
-        getMailSubscriberForFolder,
-        MailSubscriber,
-        MailSubscriberOld,
-        subscribeToMails
-    } from "$lib/app/data/mails";
+    import {getMailSubscriberForFolder, MailSubscriber,} from "$lib/app/data/mails";
     import Intersector from "./Intersector.svelte";
 
     let folder: Writable<Folder | null> = writable(null);
     let folderUnsubscriber: () => void;
 
-    let emails: Writable<Email[]> = writable([]);
-    let emailSubscriptionOld: MailSubscriberOld;
     let emailSubscription: MailSubscriber | null = $state(null);
     let totalMails = $derived.by(() => emailSubscription?.totalMails ?? readable(0))
+    let fetchedEmails = $derived.by(() => emailSubscription?.fetchedMails ?? readable(0))
+    let emails = $derived.by(() => emailSubscription?.emails ?? readable([]))
     let isReady = $derived.by(() => emailSubscription?.isReady ?? readable(false))
 
-    let fetchedEmails = $state(0)
 
     let showMailPanel = $state(false);
     let panelOrientation: "horizontal" | "vertical" = $state("horizontal")
@@ -47,10 +40,6 @@
         emailSubscription = getMailSubscriberForFolder(newFolderId)
         emailSubscription.setupWebSocket();
 
-        emailSubscriptionOld?.unsubscriber();
-        subscribeToMails(newFolderId, emails)
-            .then(sub => emailSubscriptionOld = sub)
-
         folderId = page.params.folderId
     }
 
@@ -64,7 +53,7 @@
     }
 
     function requestNextChunk() {
-        emailSubscriptionOld?.requestNextChunk()
+        emailSubscription?.requestNextChunk()
     }
 
     onMount(() => {
@@ -74,13 +63,11 @@
         if (page.params.folderId) {
             setUp(page.params.folderId)
         }
-        const fetchCountUnsubscriber = emails.subscribe(mails => fetchedEmails = mails.length)
 
         return () => {
             window.removeEventListener("resize", handleResize);
             folderUnsubscriber?.();
-            emailSubscriptionOld?.unsubscriber();
-            fetchCountUnsubscriber();
+            emailSubscription?.closeWebSocket()
         }
     })
 </script>
@@ -99,6 +86,8 @@
                         {$totalMails} E-Mails
                     {/if}
                 {/if}
+
+                (davon {$fetchedEmails} geladen)
             </h2>
         </div>
         <div class="flex w-full h-full"
@@ -131,7 +120,7 @@
                                             title={email.subject}
                                     >{email.subject}
                                         <div>
-                                            {#if i === Math.max(0, fetchedEmails - 100)}
+                                            {#if i === Math.max(0, $fetchedEmails - 100)}
                                                 <Intersector onIntersect={requestNextChunk}/>
                                             {/if}
                                         </div>
