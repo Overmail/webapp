@@ -37,8 +37,8 @@ export class MailSubscriber {
         this._isReady.subscribe(set)
     })
 
-    private _emails = writable<Email[]>([])
-    emails = readable<Email[]>([], (set) => {
+    private _emails = writable<EmailItem[]>([])
+    emails = readable<EmailItem[]>([], (set) => {
         this._emails.subscribe(set)
     })
     private hasEverLoadedMails = false;
@@ -55,7 +55,7 @@ export class MailSubscriber {
         console.log("Setting up WebSocket for folder", this.folderId)
         this.closeWebSocket()
 
-        this.webSocket = new WebSocket(`/api/webapp/realtime/mail/${this.folderId}`)
+        this.webSocket = new WebSocket(`/api/webapp/realtime/mails/${this.folderId}`)
 
         this.webSocket.onclose = (e: CloseEvent) => {
             if (e.code !== 1000) {
@@ -77,7 +77,7 @@ export class MailSubscriber {
                 this._isReady.set(true)
             } else if (message.type === "new-mails") {
                 const data = message as MailWebSocketNewMailsMessage
-                const mails = data.mails.map(mail => new Email(mail))
+                const mails = data.mails.map(mail => new EmailItem(mail))
                 if (!this.hasEverLoadedMails) this._emails.set(mails)
                 else {
                     const apiMailItemIds: string[] = data.mails.map((m: ApiMailItem) => m.id)
@@ -115,9 +115,9 @@ export class MailSubscriber {
     }
 }
 
-export class Email {
+export class EmailItem {
     id: string;
-    subject: string;
+    subject: string | null;
     senderName: string;
     sentAt: Date;
     isRead: boolean;

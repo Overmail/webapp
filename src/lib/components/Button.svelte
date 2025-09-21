@@ -43,7 +43,7 @@
     }
 
     .button:active {
-        transform: scale(0.98);
+        transform: scale(0.96);
         transition: all 0.1s ease-in-out;
     }
 </style>

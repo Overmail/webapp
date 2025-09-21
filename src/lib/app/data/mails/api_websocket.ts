@@ -10,7 +10,7 @@ export interface MailWebSocketMetadataMessage extends MailWebSocketMessage {
 
 export interface ApiMailItem {
     id: string;
-    subject: string;
+    subject: string | null;
     from: string;
     sent_at: number;
     is_read: boolean;

@@ -3,6 +3,7 @@
     import {Folder, getFolderById} from "$lib/app/data/folders";
     import {readable, writable, type Writable} from "svelte/store";
     import {onMount} from "svelte";
+    import {goto} from "$app/navigation";
     import {fade} from "svelte/transition";
     import {Loader} from "@lucide/svelte";
     import {getMailSubscriberForFolder, MailSubscriber,} from "$lib/app/data/mails";
@@ -113,12 +114,20 @@
                             </thead>
                             <tbody>
                             {#each $emails as email, i(email.id)}
-                                <tr class="border-t border-t-gray-400">
+                                <tr
+                                        onclick={() => goto(`/dashboard/mail/${email.id}`)}
+                                        class="border-t border-t-gray-400 transition-colors duration-150 ease-in-out hover:bg-gray-100 cursor-pointer"
+                                >
                                     <td
                                             class="py-1 pl-8 text-sm truncate max-w-xs overflow-hidden whitespace-nowrap"
                                             class:font-bold={!email.isRead}
-                                            title={email.subject}
-                                    >{email.subject}
+                                            title={email.subject ?? "Kein Betreff"}
+                                    >
+                                        {#if !email.subject}
+                                            <i>Ohne Betreff</i>
+                                        {:else}
+                                            {email.subject}
+                                        {/if}
                                         <div>
                                             {#if i === Math.max(0, $fetchedEmails - 100)}
                                                 <Intersector onIntersect={requestNextChunk}/>
