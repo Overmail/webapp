@@ -28,7 +28,6 @@
             <span class="inline-flex flex-nowrap text-nowrap whitespace-nowrap">{sentBy}</span>
             {#if !expandMetadata}
                 <span class="inline-flex items-start flex-wrap" transition:slide={{...metadataTransition, axis: "y"}}>
-
                     {#if sentTo}
                         <span>
                             <ArrowRight class="inline-block w-3 h-3"/>

@@ -24,12 +24,19 @@
     let hasHtmlBody = $derived.by(() => mailSubscription?.hasHtmlBody);
     let textBody = $derived.by(() => mailSubscription?.textBody);
     let isRead = $derived.by(() => mailSubscription?.isRead);
+    let htmlIframe: HTMLIFrameElement | null = $state(null);
 
     let expandMetadata = $state(false);
 
     let htmlBodyStateUnsubscriber: (() => void) | null = null;
 
     let viewMode: "html" | "text" = $state("html");
+
+    function onIframeMessage(event: MessageEvent) {
+        if (event.data.type === 'resize' && htmlIframe) {
+            htmlIframe.style.height = event.data.height + 'px';
+        }
+    }
 
     function onNewId(newId: string) {
         htmlBodyStateUnsubscriber?.();
@@ -50,6 +57,10 @@
 
     onMount(() => {
         onNewId(mailId);
+        window.addEventListener("message", onIframeMessage);
+        return () => {
+            window.removeEventListener("message", onIframeMessage);
+        }
     })
 </script>
 
@@ -124,7 +135,12 @@
 
     <div class="flex flex-col grow mt-2">
         {#if viewMode === "html"}
-            <iframe src="/api/mails/{mailId}/content/html?raw=true" class="w-full flex grow" title={$subject}></iframe>
+            <iframe
+                    src="/api/mails/{mailId}/content/html?raw=true"
+                    class="w-full flex grow min-h-72"
+                    title={$subject}
+                    bind:this={htmlIframe}
+            ></iframe>
         {:else if viewMode === "text"}
             <div class="prose prose-sm serif">
                 {#if $textBody}
