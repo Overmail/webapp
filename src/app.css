@@ -1,12 +1,21 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
-body {
+body, .ui {
     font-family: "Poppins", sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6, .serif {
     font-family: "Playfair Display", serif;
+}
+
+.pressable {
+    transition: transform 0.25s ease-in-out;
+}
+
+.pressable:active {
+    transform: scale(0.96);
+    transition: transform 0.1s ease-in-out;
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

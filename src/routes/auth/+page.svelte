@@ -51,13 +51,13 @@
         <div class="flex flex-row gap-2 mt-2 justify-end">
             <Button
                     class="w-fit"
-                    type="link"
+                    variant="link"
                     label="Passwort vergessen"
             />
             <Button
                     class="w-fit"
                     icon={LogIn}
-                    type="primary"
+                    variant="primary"
                     label="Anmelden"
                     onclick={() => form.requestSubmit()}
             />

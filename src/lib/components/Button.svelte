@@ -1,29 +1,34 @@
 <script lang="ts">
     import type {IconProps} from "@lucide/svelte";
+    import type {HTMLButtonAttributes} from "svelte/elements";
+    import type {Snippet} from "svelte";
+
+    export type ButtonProps = {
+        icon?: import("svelte").Component<IconProps, {}, "">,
+        iconSnippet?: Snippet,
+        label?: string,
+        state?: "default" | "disabled" | "loading",
+        variant: "primary" | "link",
+        size: "default" | "icon",
+        className?: string,
+        buttonBinding?: HTMLButtonElement | undefined,
+    } & HTMLButtonAttributes;
 
     let {
         icon,
         iconSnippet,
         label,
         state,
-        type,
+        variant: type,
         size,
         class: className,
-        onclick
-    }: {
-        icon?: import("svelte").Component<IconProps, {}, "">,
-        iconSnippet?: any,
-        label?: string,
-        state?: "enabled" | "disabled" | "loading",
-        type: "primary" | "secondary" | "link",
-        size?: "regular" | "icon"
-        class?: string,
-        onclick?: (e: MouseEvent) => void,
-    } = $props();
+        buttonBinding = $bindable<HTMLButtonElement>(),
+        ...restProps
+    }: ButtonProps = $props();
 </script>
 
 <button
-        class={`w-fit ${className || ''} inline-flex flex-row items-center justify-center py-2 gap-2 text-sm min-h-10 rounded-md hover:cursor-pointer button`}
+        class={`w-fit ${className || ''} inline-flex flex-row items-center justify-center py-2 gap-2 text-sm min-h-10 rounded-md hover:cursor-pointer pressable`}
         class:text-white={type === "primary"}
         class:bg-black={type === "primary"}
         class:hover:bg-gray-200={type === "link"}
@@ -31,7 +36,8 @@
         class:px-2={size === "icon"}
         class:px-4={size !== "icon"}
         disabled={state === "disabled" || state === "loading"}
-        onclick={onclick}
+        bind:this={buttonBinding}
+        {...restProps}
 >
     {#if icon}
         {@const Icon = icon}
@@ -47,14 +53,3 @@
         </span>
     {/if}
 </button>
-
-<style>
-    .button {
-        transition: all 0.25s ease-in-out;
-    }
-
-    .button:active {
-        transform: scale(0.96);
-        transition: all 0.1s ease-in-out;
-    }
-</style>
