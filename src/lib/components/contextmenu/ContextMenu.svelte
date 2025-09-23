@@ -32,22 +32,25 @@
 
     onMount(() => {
         window.addEventListener("mousemove", onMouseMove)
+        window.addEventListener("mousedown", onClick)
+
 
         return () => {
             window.removeEventListener("mousemove", onMouseMove)
+            window.removeEventListener("mousedown", onClick)
         }
     })
 
-    function onClickOutside(event: MouseEvent) {
-        if (contextMenu && event.target instanceof Node && event.target === contextMenuRoot) {
+    function onClick(event: MouseEvent) {
+        if (isOpen && event.target instanceof HTMLElement && event.target.closest(".context-menu-item") === null) {
             isOpen = false;
         }
     }
 </script>
 
 {#if isOpen}
-    <div class="absolute w-full h-full top-0 left-0" onclick={onClickOutside} aria-hidden="true" transition:fade={{duration: 150}} bind:this={contextMenuRoot}>
-        <div class="absolute ui flex flex-col text-gray-800 gap-1 w-2xs bg-white rounded-lg p-1 shadow-md" bind:this={contextMenu} style="top: {contextMenuPosition.y}px; left: {contextMenuPosition.x}px;">
+    <div class="absolute w-full h-full top-0 left-0 z-30 pointer-events-none" aria-hidden="true" transition:fade={{duration: 150}} bind:this={contextMenuRoot}>
+        <div class="absolute ui flex flex-col text-gray-800 gap-1 w-2xs pointer-events-auto bg-white rounded-lg p-1 shadow-md" bind:this={contextMenu} style="top: {contextMenuPosition.y}px; left: {contextMenuPosition.x}px;">
             {@render children?.()}
         </div>
     </div>
